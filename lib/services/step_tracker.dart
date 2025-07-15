@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:health/health.dart';
 import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
-
 import 'storage_service.dart';
 
 class StepTracker with ChangeNotifier {
@@ -24,6 +23,7 @@ class StepTracker with ChangeNotifier {
   int get steps => _steps;
   String get source => _source;
 
+  /// Initializes step tracking on app launch or refresh
   Future<void> init() async {
     _isLoading = true;
     notifyListeners();
@@ -35,6 +35,7 @@ class StepTracker with ChangeNotifier {
     final start = DateTime(now.year, now.month, now.day);
 
     try {
+      // Step 1: Check if Health Connect is available on device
       bool isAvailable = await _health.isHealthConnectAvailable();
       if (!isAvailable) {
         print("Health Connect not available.");
@@ -42,13 +43,16 @@ class StepTracker with ChangeNotifier {
         return;
       }
 
+      // Step 2: Request Health Connect step permissions
       final granted = await _health.requestAuthorization([HealthDataType.STEPS]);
       if (granted) {
+        // Step 3: Fetch steps from Health Connect
         final count = await _health.getTotalStepsInInterval(start, now);
         _steps = count ?? 0;
         _source = "Health Connect";
-        await _storage.saveStepData(_dateKey(), _steps);
         _lastUpdated = DateTime.now().toUtc().toIso8601String();
+        await _storage.saveStepData(_dateKey(), _steps);
+        _isLoading = false;
         notifyListeners();
         return;
       } else {
@@ -58,9 +62,11 @@ class StepTracker with ChangeNotifier {
       print("Health Connect error: $e");
     }
 
+    // Step 4: If anything fails, fallback to Pedometer
     _fallbackToPedometer();
   }
 
+  /// Fallback method if Health Connect is not available or permission denied
   void _fallbackToPedometer() async {
     _source = "Pedometer";
 
@@ -74,12 +80,14 @@ class StepTracker with ChangeNotifier {
     }
   }
 
+  /// Starts pedometer step tracking
   void _startPedometer() async {
     print("Pedometer started...");
 
     Pedometer.stepCountStream.listen((StepCount event) async {
       print("Pedometer event: ${event.steps}");
 
+      // Use initial value to calculate daily steps
       if (_initialStepCount == null) {
         _initialStepCount = await _storage.getInitialStepCount(_dateKey()) ?? event.steps;
         await _storage.saveInitialStepCount(_dateKey(), _initialStepCount!);
@@ -87,11 +95,9 @@ class StepTracker with ChangeNotifier {
       }
 
       _steps = (event.steps - _initialStepCount!).clamp(0, double.infinity).toInt();
-      print("Current session steps: $_steps");
-
-      await _storage.saveStepData(_dateKey(), _steps);
       _lastUpdated = DateTime.now().toUtc().toIso8601String();
 
+      await _storage.saveStepData(_dateKey(), _steps);
       _isLoading = false;
       notifyListeners();
     }).onError((error) {
@@ -101,6 +107,7 @@ class StepTracker with ChangeNotifier {
     });
   }
 
+  /// Utility method to return date in yyyy-MM-dd format
   String _dateKey() {
     final now = DateTime.now();
     return "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";

@@ -23,6 +23,7 @@ class StepApp extends StatelessWidget {
       home: Scaffold(
         appBar: AppBar(
           title: const Text("Step Counter"),
+          centerTitle: true,
           backgroundColor: Colors.green.shade700.withOpacity(0.9),
           elevation: 0,
         ),

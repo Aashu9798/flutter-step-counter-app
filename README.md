@@ -1,4 +1,3 @@
-cat << 'EOF' > README.md
 # 🏃‍♂️ Step Counter App – Flutter Assignment
 
 A Flutter application that tracks the user's daily step count using:
@@ -25,6 +24,7 @@ A Flutter application that tracks the user's daily step count using:
 > ⚠️ Works only on **real Android devices** (not emulator)
 
 1. Clone the repository or extract the ZIP file.
+   https://github.com/Aashu9798/flutter-step-counter-app
 2. In terminal, run:  
    \`\`\`bash
    flutter pub get
@@ -117,4 +117,8 @@ Flutter Developer
 🔗 [LinkedIn Profile](https://www.linkedin.com/in/aashu-shrivastava-6279b7259/)
 
 ---
-EOF
+
+## 📬 Submission Link
+
+🔗 GitHub Repository:  
+[https://github.com/Aashu9798/flutter-step-counter-app](https://github.com/Aashu9798/flutter-step-counter-app)
